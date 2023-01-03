@@ -4,7 +4,9 @@ use std::io::{self, Read, Write};
 const CHUNK_SIZE: usize = 16 * 1024;
 
 fn main() {
-    if true == true {}
+    if true == true {
+        println!("Hello, world!");
+    }
     let silent = env::var("PV_SILENT").unwrap_or_default().is_empty();
     let mut total_bytes = 0;
     loop {
