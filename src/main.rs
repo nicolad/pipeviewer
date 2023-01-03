@@ -6,12 +6,7 @@ const CHUNK_SIZE: usize = 16 * 1024;
 
 fn main() -> Result<()> {
     let matches = App::new("pipeviewer")
-        .arg(
-            Arg::with_name("infile")
-                .help("Read from file instead of stdin")
-                .short("i")
-                .long("infile"),
-        )
+        .arg(Arg::with_name("infile").help("Read from file instead of stdin"))
         .arg(
             Arg::with_name("outfile")
                 .help("Write to file instead of stdout")
