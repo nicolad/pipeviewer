@@ -1,10 +1,9 @@
 use std::env;
-use std::io::{self, Read, Write};
+use std::io::{self, Read, Result, Write};
 
 const CHUNK_SIZE: usize = 16 * 1024;
 
-fn main() {
-    println!("Hello, world !");
+fn main() -> Result<()> {
     let silent = env::var("PV_SILENT").unwrap_or_default().is_empty();
     let mut total_bytes = 0;
     loop {
@@ -16,9 +15,15 @@ fn main() {
             Err(_) => break,
         };
         total_bytes += num_read;
-        io::stdout().write_all(&buffer[..num_read]).unwrap();
+        if let Err(e) = io::stdout().write_all(&buffer[..num_read]) {
+            if e.kind() == io::ErrorKind::BrokenPipe {
+                break;
+            }
+            return Err(e);
+        }
     }
     if !silent {
         eprintln!("{}", total_bytes);
     }
+    Ok(())
 }
