@@ -1,5 +1,6 @@
 use clap::{App, Arg};
 use std::env;
+use std::fs::File;
 use std::io::{self, Read, Result, Write};
 
 const CHUNK_SIZE: usize = 16 * 1024;
@@ -30,14 +31,23 @@ fn main() -> Result<()> {
         !env::var("PV_SILENT").unwrap_or_default().is_empty()
     };
 
-    dbg!(infile, outfile, silent);
+    let mut reader: Box<dyn Read> = if !infile.is_empty() {
+        Box::new(File::open(infile)?)
+    } else {
+        Box::new(io::stdin())
+    };
 
-    let silent = !env::var("PV_SILENT").unwrap_or_default().is_empty();
+    let mut writer: Box<dyn Write> = if !outfile.is_empty() {
+        Box::new(File::create(outfile)?)
+    } else {
+        Box::new(io::stdout())
+    };
+
     let mut total_bytes = 0;
     loop {
         let mut buffer = [0; CHUNK_SIZE];
 
-        let num_read = match io::stdin().read(&mut buffer) {
+        let num_read = match reader.read(&mut buffer) {
             Ok(0) => break,
             Ok(x) => x,
             Err(_) => break,
@@ -46,7 +56,7 @@ fn main() -> Result<()> {
         if !silent {
             eprint!("\r{}", total_bytes);
         }
-        if let Err(e) = io::stdout().write_all(&buffer[..num_read]) {
+        if let Err(e) = writer.write_all(&buffer[..num_read]) {
             if e.kind() == io::ErrorKind::BrokenPipe {
                 break;
             }
